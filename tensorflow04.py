@@ -32,6 +32,7 @@ l1 = addLayer(xs,1,10,tf.nn.relu)
 prediction = addLayer(l1,10,1)
 with tf.name_scope('loss'):
     loss = tf.reduce_mean(tf.reduce_sum(tf.square(ys-prediction),1))
+    tf.summary.scalar('loss',loss) 
 with tf.name_scope('train'):
     train_step = tf.train.AdamOptimizer(0.1).minimize(loss)
 
@@ -39,10 +40,14 @@ init = tf.initialize_all_variables()
 
 with tf.Session() as sess:
     sess.run(init)
+    merged = tf.summary.merge_all()
     writer = tf.summary.FileWriter('logs/', sess.graph)
+
     for step in range(1000):
         sess.run(train_step,feed_dict={xs:xData,ys:yData})
         if step%50 == 0:
+            result = sess.run(merged, feed_dict={xs:xData,ys:yData})
+            writer.add_summary(result,step)
             try:
                 ax.lines.remove(line[0])
             except Exception:
